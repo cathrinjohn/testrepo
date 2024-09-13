@@ -1,0 +1,54 @@
+select w.warehouseCode, w.warehouseName, w.warehousePctCap, sum(p.quantityInStock) from warehouses w, products p where w.warehouseCode=p.warehouseCode group by warehouseCode;
+select w.warehouseCode, w.warehouseName, w.warehousePctCap, sum(p.quantityInStock), ((100*sum(p.quantityInStock))/w.warehousePctCap) as total_capacity_to_store from warehouses w, products p where w.warehouseCode=p.warehouseCode group by warehouseCode;
+select w.warehouseName, w.warehouseCode, sum(p.quantityInStock) as total_quantity_in_stock, p.productLine from warehouses w left outer join products p on w.warehouseCode=p.warehouseCode group by warehouseCode, productLine;
+select p.productCode, p.productLine, p.quantityInStock, sum(o.quantityOrdered), avg(o.quantityOrdered), max(o.quantityOrdered), min(o.quantityOrdered) from products p join orderdetails o on p.productCode=o.productCode where p.productLine="Trains" or p.productLine="Ships" or p.productLine="Trucks and Buses" group by productLine, p.productCode, p.quantityInStock order by p.productLine;
+select p.productCode, p.productLine, p.quantityInStock, sum(o.quantityOrdered), sum(o.quantityOrdered)*100/p.quantityInStock as "%_quantity_ordered", avg(o.quantityOrdered), max(o.quantityOrdered), min(o.quantityOrdered) from products p join orderdetails o on p.productCode=o.productCode where p.productLine="Trains" or p.productLine="Ships" or p.productLine="Trucks and Buses" group by productLine, p.productCode, p.quantityInStock order by p.productLine;
+select p.productCode, p.productName, p.buyPrice, sum(o.quantityOrdered),p.buyPrice* sum(o.quantityOrdered) as total_price from products p left join orderdetails o on p.productCode=o.productCode group by p.productCode,  p.productName,p.buyPrice order by p.buyPrice desc;
+select * from orderdetails;
+select count(orderNumber) as number_of_orders from orderdetails;
+select orderNumber, count(orderNumber) as number_of_orders from orderdetails group by orderNumber;
+select status, count(status) as count from orders group by status;
+select p.productLine, sum(o.quantityOrdered) as QuantityOrdered, d.status from orderdetails o, orders d, products p where o.orderNumber=d.orderNumber and p.productCode=o.productCode group by p.productLine, d.status order by d.status;
+select productLine, sum(quantityInStock) from products group by productLine;
+select p.productLine, p.quantityInStock, sum(o.quantityOrdered) from products p, orderdetails o where p.productCode=o.productCode group by p.productLine,p.quantityInStock;
+select sum(quantityOrdered) from orderdetails;
+select p.productLine, sum(o.quantityOrdered) as QuantityOrdered, d.status from orderdetails o, orders d, products p where o.orderNumber=d.orderNumber and p.productCode=o.productCode and d.status="Shipped"  group by p.productLine;
+select p.productLine, sum(o.quantityOrdered) from products p, orderdetails o where p.productCode=o.productCode group by productLine;
+select sum(quantityOrdered*priceEach) as total_revenue from orderdetails;
+select c.customerNumber, c.customerName, count(o.orderNumber)  as total_orders from customers c, orders o where c.customerNumber=o.customerNumber group by c.customerNumber, c.customerName order by total_orders desc;
+select customerNumber, customerName, sum(quantityOrdered*priceEach) as total_amount from customers natural join orders natural join orderdetails group by customerNumber, customerName order by total_amount desc;
+select * from employees;
+select * from orders;
+select count(o.orderNumber), c.customerName, sum(d.quantityOrdered*d.priceEach) from orders o, customers c, orderdetails d where o.customerNumber=c.customerNumber and o.orderNumber=d.orderNumber and c.customerNumber=141;
+select distinct jobTitle from employees;
+select * from customers;
+SELECT customerName, salesRepEmployeeNumber
+FROM Customers 
+WHERE customerNumber =
+(
+    SELECT customerNumber
+    FROM Orders
+    WHERE orderNumber = 
+    (
+        SELECT orderNumber
+        FROM OrderDetails
+        GROUP BY orderNumber
+        HAVING sum(priceEach*quantityOrdered) =
+        (
+            SELECT MAX(OrderTotals.orderTotal)
+            FROM 
+            (
+                SELECT sum(priceEach*quantityOrdered) AS orderTotal
+                FROM OrderDetails
+                GROUP BY orderNumber
+            ) AS OrderTotals
+        )
+    )
+);
+SELECT lastName, firstName, employeeNumber FROM Employees
+EXCEPT
+SELECT DISTINCT lastName, firstName, employeeNumber 
+FROM Employees E INNER JOIN Customers C
+ON E.employeeNumber = C.salesrepemployeenumber
+ORDER BY lastname, firstname;
+select e.employeeNumber, e.firstName, e.jobTitle, sum(o.quantityOrdered*o.priceEach) as total_sale_amount from employees e left join customers c on e.employeeNumber=c.salesRepEmployeeNumber left join orders d on d.customerNumber=c.customerNumber left join orderdetails o on o.orderNumber=d.orderNumber group by e.employeeNumber, e.firstName, e.jobTitle order by total_sale_amount desc;
